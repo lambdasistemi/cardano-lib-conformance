@@ -9,6 +9,34 @@ library cannot observe and rewrite that output during its own balancing pass:
 4. Stop only when the fee is unchanged; fail with a distinct non-convergence error at the bound.
 5. After convergence, validate fee sufficiency and value conservation.
 
+Together these examples cover all four capability classes: ordinary balancing
+(P1), fee-dependent outputs (P2), candidate observation/re-entry (P3), and
+candidate-derived redeemer or min-UTxO data (P4). Haskell examples live in the
+separate heavy tier; `nix flake check` remains the fast default gate.
+
+## Cardano Tx Tools
+
+[`tx-tools/Main.hs`](tx-tools/Main.hs) is a standalone offline GHC 9.12.3
+program with synthetic protocol parameters and UTxO references. It runs the
+native `balanceFeeLoop` fee-dependent refund hook, then uses `draft`, `peek`,
+and `Convergence` to observe the final output coin and encode it into a spending
+redeemer. It asserts bounded convergence and conservation and prints the pass
+counts, complementing the P2, P3, and P4 source-evidence cells.
+
+## cardano-api 10.19.1.0
+
+[`cardano-api/Main.hs`](cardano-api/Main.hs) rebuilds fresh `TxBodyContent`
+around `makeTransactionBodyAutoBalance` in an eight-pass caller-owned loop. The
+recipient output depends on the previously observed fee; each real candidate
+uses a synthetic UTxO and protocol-parameter fixture and is checked for value
+conservation. This is the worked external-loop counterpart to cardano-api P2–P4.
+
+Both are built with the upstream unit check as one heavy target:
+
+```sh
+nix build --accept-flake-config .#heavy-checks
+```
+
 ## CSL 17.0.0
 
 [`csl/outer_loop.rs`](csl/outer_loop.rs) is a complete offline Rust program. It

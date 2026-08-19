@@ -1,10 +1,25 @@
 {
   description = "Pinned interface and behavioral conformance for Cardano libraries";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.iog.io"
+      "https://paolino.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+      "paolino.cachix.org-1:ecmgO3CXdgSWA2cHlm4srknd/cLFMLmK3i3NrzeDFaE="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
     tx-tools.url = "github:lambdasistemi/cardano-tx-tools/7bfe95bf5ef3bfa846e62bcae94cf377b66ad0d0";
+    chap = {
+      url = "github:input-output-hk/cardano-haskell-packages/3b065389055ced74890b09d772e3b1fe81df49ef";
+      flake = false;
+    };
 
     csl = {
       url = "github:Emurgo/cardano-serialization-lib/6b4253814f1831fee06cda2718fd47174960ace1";
@@ -56,6 +71,16 @@
         let
           pkgs = import nixpkgs { inherit system; };
           lib = pkgs.lib;
+          txInputs = inputs."tx-tools".inputs;
+          txPkgs = import txInputs.nixpkgs {
+            inherit system;
+            overlays = [
+              txInputs.iohkNix.overlays.crypto
+              txInputs.haskellNix.overlay
+              txInputs.iohkNix.overlays.haskell-nix-crypto
+              txInputs.iohkNix.overlays.cardano-lib
+            ];
+          };
           sources = {
             txTools = inputs."tx-tools".outPath;
             inherit (inputs) csl pallas ccl scalus evolution;
@@ -378,6 +403,56 @@
             ${lib.getExe txToolsUnitApp}
             touch $out
           '';
+          txToolsExampleProject = txPkgs.haskell-nix.cabalProject' {
+            name = "tx-tools-native-hooks-example";
+            src = ./balance-fixpoint/examples/tx-tools;
+            compiler-nix-name = "ghc9123";
+            inputMap = {
+              "https://chap.intersectmbo.org/" = txInputs.CHaP;
+            };
+            modules = [{
+              packages.cardano-crypto-praos.components.library.pkgconfig =
+                txPkgs.lib.mkForce [ [ txPkgs.libsodium-vrf ] ];
+              packages.cardano-crypto-class.components.library.pkgconfig =
+                txPkgs.lib.mkForce [
+                  [ txPkgs.libsodium-vrf txPkgs.secp256k1 txPkgs.libblst ]
+                ];
+            }];
+          };
+          txToolsExample =
+            txToolsExampleProject.hsPkgs.tx-tools-native-hooks.components.exes.tx-tools-native-hooks;
+          txToolsExampleApp = pkgs.writeShellApplication {
+            name = "example-tx-tools-native-hooks";
+            runtimeInputs = [ txToolsExample ];
+            text = ''tx-tools-native-hooks'';
+          };
+          txToolsExampleCheck =
+            mkCheck "example-tx-tools-native-hooks" txToolsExampleApp;
+          cardanoApiExampleProject = txPkgs.haskell-nix.cabalProject' {
+            name = "cardano-api-outer-loop-example";
+            src = ./balance-fixpoint/examples/cardano-api;
+            compiler-nix-name = "ghc9123";
+            inputMap = {
+              "https://chap.intersectmbo.org/" = inputs.chap;
+            };
+            modules = [{
+              packages.cardano-crypto-praos.components.library.pkgconfig =
+                txPkgs.lib.mkForce [ [ txPkgs.libsodium-vrf ] ];
+              packages.cardano-crypto-class.components.library.pkgconfig =
+                txPkgs.lib.mkForce [
+                  [ txPkgs.libsodium-vrf txPkgs.secp256k1 txPkgs.libblst ]
+                ];
+            }];
+          };
+          cardanoApiExample =
+            cardanoApiExampleProject.hsPkgs.cardano-api-outer-loop.components.exes.cardano-api-outer-loop;
+          cardanoApiExampleApp = pkgs.writeShellApplication {
+            name = "example-cardano-api-outer-loop";
+            runtimeInputs = [ cardanoApiExample ];
+            text = ''cardano-api-outer-loop'';
+          };
+          cardanoApiExampleCheck =
+            mkCheck "example-cardano-api-outer-loop" cardanoApiExampleApp;
           cslExampleSource = pkgs.runCommand "csl-example-source" { } ''
             cp -R ${inputs.csl}/. $out
             chmod -R u+w $out
@@ -505,7 +580,6 @@
           };
           scalusExampleCheck = mkCheck "example-scalus-diffhandler" scalusExampleApp;
           allApps = evidenceApps // {
-            tx-tools-unit = txToolsUnitApp;
             example-csl-outer-loop = cslExampleApp;
             example-evolution-outer-loop = evolutionExampleApp;
             example-ccl-native-hook = cclExampleApp;
@@ -513,9 +587,15 @@
             crossval-csl = crossvalCslApp;
             crossval-ccl = crossvalCclApp;
           };
+          heavyChecks = pkgs.runCommand "heavy-checks" { } ''
+            set -euo pipefail
+            test -e ${txToolsUnit}
+            test -e ${txToolsExampleCheck}
+            test -e ${cardanoApiExampleCheck}
+            touch $out
+          '';
         in {
           checks = evidenceChecks // {
-            tx-tools-unit = txToolsUnit;
             example-csl-outer-loop = cslExampleCheck;
             example-evolution-outer-loop = evolutionExampleCheck;
             example-ccl-native-hook = cclExampleCheck;
@@ -527,10 +607,16 @@
             type = "app";
             program = lib.getExe app;
           }) allApps;
+          packages = {
+            heavy-checks = heavyChecks;
+            example-tx-tools-native-hooks = txToolsExample;
+            example-cardano-api-outer-loop = cardanoApiExample;
+          };
         };
       perSystem = forAllSystems mkSystem;
     in {
       checks = nixpkgs.lib.mapAttrs (_: value: value.checks) perSystem;
       apps = nixpkgs.lib.mapAttrs (_: value: value.apps) perSystem;
+      packages = nixpkgs.lib.mapAttrs (_: value: value.packages) perSystem;
     };
 }
