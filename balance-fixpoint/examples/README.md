@@ -39,10 +39,12 @@ nix build .#checks.x86_64-linux.example-evolution-outer-loop
 
 [`ccl/OuterLoop.java`](ccl/OuterLoop.java) composes
 `feeCalculator(..., UpdateOutputFunction)` with `balanceTx`, places that native
-hook inside a caller-owned eight-pass loop, and runs entirely offline from eight
-fixed-output Maven jars. The program rejects a one-pass loop and checks fee
-observation and value conservation. This complements P2–P4 and makes the
-caller-owned bound explicit outside CCL's internal adjustment retries.
+hook inside a caller-owned eight-pass loop, and runs entirely offline from
+fixed-output Maven jars. Every pass serializes a real CCL transaction, so the
+fee guess is based on the candidate's actual byte length. The program rejects a
+one-pass loop and checks fee observation and value conservation. This
+complements P2–P4 and makes the caller-owned bound explicit outside CCL's
+internal adjustment retries.
 
 ```sh
 nix build .#checks.x86_64-linux.example-ccl-native-hook

@@ -1,5 +1,5 @@
 {
-  description = "Runnable, drift-detecting evidence for the Cardano fixpoint skill";
+  description = "Pinned interface and behavioral conformance for Cardano libraries";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -78,7 +78,7 @@
           renderForbid = source: assertion: ''
             if rg --ignore-case --regexp ${lib.escapeShellArg assertion.regex} ${source}/${assertion.path}; then
               echo "drift detected: forbidden hook appeared in ${assertion.path}: ${assertion.regex}" >&2
-              echo "Update the fixpoint skill and its matrix if upstream gained this capability." >&2
+              echo "Update the balance-fixpoint skill and its matrix if upstream gained this capability." >&2
               exit 1
             fi
           '';
@@ -98,6 +98,17 @@
               set -euo pipefail
               ${lib.getExe app}
               touch $out
+            '';
+          mkArtifactCheck = name: app:
+            pkgs.runCommand name {
+              nativeBuildInputs = [ pkgs.glibcLocales ];
+              LANG = "C.UTF-8";
+              LC_ALL = "C.UTF-8";
+            } ''
+              set -euo pipefail
+              mkdir -p $out
+              ARTIFACT_DIR=$out ${lib.getExe app}
+              test -s $out/transaction.cbor
             '';
 
           specs = {
@@ -371,7 +382,7 @@
             cp -R ${inputs.csl}/. $out
             chmod -R u+w $out
             mkdir -p $out/rust/examples
-            cp ${./examples/csl/outer_loop.rs} $out/rust/examples/outer_loop.rs
+            cp ${./balance-fixpoint/examples/csl/outer_loop.rs} $out/rust/examples/outer_loop.rs
           '';
           cslExample = pkgs.rustPlatform.buildRustPackage {
             pname = "csl-outer-loop";
@@ -392,7 +403,7 @@
             runtimeInputs = [ cslExample ];
             text = ''csl-outer-loop'';
           };
-          cslExampleCheck = mkCheck "example-csl-outer-loop" cslExampleApp;
+          cslExampleCheck = mkArtifactCheck "example-csl-outer-loop" cslExampleApp;
           evolutionExampleApp = pkgs.writeShellApplication {
             name = "example-evolution-outer-loop";
             runtimeInputs = [ pkgs.coreutils pkgs.nodePackages.typescript pkgs.ripgrep ];
@@ -401,7 +412,7 @@
               trap 'rm -rf "$work"' EXIT
               mkdir -p "$work/node_modules/@evolution-sdk"
               ln -s ${inputs.evolution} "$work/node_modules/@evolution-sdk/evolution"
-              cp ${./examples/evolution/outer-loop.ts} "$work/outer-loop.ts"
+              cp ${./balance-fixpoint/examples/evolution/outer-loop.ts} "$work/outer-loop.ts"
               tsc --noEmit --strict --skipLibCheck --target ES2022 \
                 --module NodeNext --moduleResolution NodeNext "$work/outer-loop.ts"
               if [[ "''${FALSIFY:-0}" == "1" ]]; then
@@ -426,13 +437,18 @@
             (mavenJar "com/bloxbean/cardano/cardano-client-crypto/0.7.2/cardano-client-crypto-0.7.2.jar" "sha256-C5h87II/DRl4v8jKU0gzNO0jfD4rk3s4ImFd9w8z5n4=")
             (mavenJar "org/bouncycastle/bcprov-jdk18on/1.78/bcprov-jdk18on-1.78.jar" "sha256-G/chsJdYs/VfKlyHW2F47GxB3drYVLDerUsnojbxlDo=")
             (mavenJar "org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar" "sha256-e3UdlSBhlU1av+1xgcH2RdM2CRtnmJFZHWMynGIuuDI=")
+            (mavenJar "co/nstant/in/cbor/0.9/cbor-0.9.jar" "sha256-XvRlxH40xrE/k+zi/0npS5M9ac+fFyzEmXQYMDiE2nM=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-common-spec/0.7.2/cardano-client-common-spec-0.7.2.jar" "sha256-K2GblF2XgSXNJ04qsZpjMEU1OGFfRPi4rOsz5+JS1H0=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-plutus/0.7.2/cardano-client-plutus-0.7.2.jar" "sha256-pn5ljwAfU5iI+diNdl14GeMVUwaEojgSa7381MXYm4M=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-metadata/0.7.2/cardano-client-metadata-0.7.2.jar" "sha256-vHO3+xDsOgtwotaNiWoaA+Dglz7+5R9oGU799ewUIa0=")
+            (mavenJar "com/google/guava/guava/33.0.0-jre/guava-33.0.0-jre.jar" "sha256-9NhcPk1BFpQzfLhzq+oJskK2ZLsBMyC+YQUyfEWZFTc=")
           ];
           cclClasspath = lib.concatStringsSep ":" (map toString cclJars);
           cclExample = pkgs.runCommand "ccl-native-hook-classes" {
             nativeBuildInputs = [ pkgs.jdk17_headless ];
           } ''
             mkdir -p $out
-            cp ${./examples/ccl/OuterLoop.java} OuterLoop.java
+            cp ${./balance-fixpoint/examples/ccl/OuterLoop.java} OuterLoop.java
             javac -cp ${lib.escapeShellArg cclClasspath} -d $out OuterLoop.java
           '';
           cclExampleApp = pkgs.writeShellApplication {
@@ -440,7 +456,32 @@
             runtimeInputs = [ pkgs.jdk17_headless ];
             text = ''java -cp ${lib.escapeShellArg "${cclExample}:${cclClasspath}"} OuterLoop'';
           };
-          cclExampleCheck = mkCheck "example-ccl-native-hook" cclExampleApp;
+          cclExampleCheck = mkArtifactCheck "example-ccl-native-hook" cclExampleApp;
+          pallasCrossval = pkgs.rustPlatform.buildRustPackage {
+            pname = "pallas-crossval";
+            version = "0.1.0";
+            src = ./balance-fixpoint/crossval;
+            cargoLock = {
+              lockFile = ./balance-fixpoint/crossval/Cargo.lock;
+              outputHashes = {
+                "pallas-codec-1.1.1" = "sha256-vDdAQXh5nTks3CSKrF4djblyIIWpfsIbxgZQToac6bs=";
+              };
+            };
+            postPatch = ''
+              find /build/cargo-vendor-dir -path '*/pallas-*/Cargo.toml' -exec \
+                sed -i 's/rust-version = "1.88"/rust-version = "1.86"/' {} +
+            '';
+            doCheck = false;
+          };
+          mkCrossvalApp = name: artifact: pkgs.writeShellApplication {
+            inherit name;
+            runtimeInputs = [ pallasCrossval ];
+            text = ''pallas-crossval ${artifact}/transaction.cbor'';
+          };
+          crossvalCslApp = mkCrossvalApp "crossval-csl" cslExampleCheck;
+          crossvalCclApp = mkCrossvalApp "crossval-ccl" cclExampleCheck;
+          crossvalCslCheck = mkCheck "crossval-csl" crossvalCslApp;
+          crossvalCclCheck = mkCheck "crossval-ccl" crossvalCclApp;
           scalusJars = [
             (mavenJar "org/scalus/scalus-cardano-ledger_3/1.0.0/scalus-cardano-ledger_3-1.0.0.jar" "sha256-2lHeVj9nbi0JWVQ4gdqzHJJ9bkMF3Qk1KbkQZXKWOrs=")
             (mavenJar "org/scalus/scalus_3/1.0.0/scalus_3-1.0.0.jar" "sha256-3RxWn95htGg/Mfft2AOnnzk1Gyogfolh6Z+307N4H3c=")
@@ -453,9 +494,9 @@
               work=$(mktemp -d)
               trap 'rm -rf "$work"' EXIT
               scalac -classpath ${lib.escapeShellArg scalusClasspath} -d "$work" \
-                ${./examples/scalus/OuterLoop.scala}
+                ${./balance-fixpoint/examples/scalus/OuterLoop.scala}
               if [[ "''${FALSIFY:-0}" == "1" ]]; then
-                if rg --fixed-strings --quiet 'fresh builder' ${./examples/scalus/OuterLoop.scala}; then
+                if rg --fixed-strings --quiet 'fresh builder' ${./balance-fixpoint/examples/scalus/OuterLoop.scala}; then
                   echo "FALSIFY: required fresh-builder marker was unexpectedly accepted" >&2
                   exit 1
                 fi
@@ -469,6 +510,8 @@
             example-evolution-outer-loop = evolutionExampleApp;
             example-ccl-native-hook = cclExampleApp;
             example-scalus-diffhandler = scalusExampleApp;
+            crossval-csl = crossvalCslApp;
+            crossval-ccl = crossvalCclApp;
           };
         in {
           checks = evidenceChecks // {
@@ -477,6 +520,8 @@
             example-evolution-outer-loop = evolutionExampleCheck;
             example-ccl-native-hook = cclExampleCheck;
             example-scalus-diffhandler = scalusExampleCheck;
+            crossval-csl = crossvalCslCheck;
+            crossval-ccl = crossvalCclCheck;
           };
           apps = lib.mapAttrs (_: app: {
             type = "app";

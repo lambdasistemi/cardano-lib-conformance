@@ -1,0 +1,12 @@
+[package]
+name = "pallas-crossval"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "pallas-crossval"
+path = "pallas.rs"
+
+[dependencies]
+pallas-codec = { git = "https://github.com/txpipe/pallas", rev = "cdee91d931132338570e6e6fef3191a61586d61b" }
+pallas-primitives = { git = "https://github.com/txpipe/pallas", rev = "cdee91d931132338570e6e6fef3191a61586d61b" }

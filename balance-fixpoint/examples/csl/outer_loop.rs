@@ -89,5 +89,10 @@ fn main() {
     assert!(passes <= MAX_PASSES);
     assert!(fee >= required, "converged fee must be sufficient");
     assert_eq!(INPUT, refund + fee + TIP, "lovelace must be conserved");
+    if let Some(dir) = std::env::var_os("ARTIFACT_DIR") {
+        std::fs::create_dir_all(&dir).expect("create artifact directory");
+        std::fs::write(std::path::Path::new(&dir).join("transaction.cbor"), tx.to_bytes())
+            .expect("write converged transaction CBOR");
+    }
     println!("CSL outer loop converged in {passes} passes at fee {fee}");
 }
