@@ -13,6 +13,7 @@ import Cardano.Slotting.Slot qualified as Slotting
 import Cardano.Slotting.Time qualified as Slotting
 import Control.Monad (unless)
 import Data.Functor.Identity (Identity)
+import Data.Map.Strict qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.Ratio ((%))
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
@@ -52,26 +53,27 @@ fixtureProtocolParams =
     conwayUpgrade :: Ledger.UpgradeConwayPParams Identity
     conwayUpgrade = Ledger.cgUpgradePParams Genesis.conwayGenesisDefaults
 
-    alonzoUpgrade :: Alonzo.UpgradeAlonzoPParams Identity
+    alonzoUpgrade :: LedgerApi.UpgradeAlonzoPParams Identity
     alonzoUpgrade =
-        Alonzo.UpgradeAlonzoPParams
-            { Alonzo.uappCoinsPerUTxOWord = Ledger.CoinPerWord $ Ledger.Coin 34_482
-            , Alonzo.uappCostModels = Alonzo.emptyCostModels
-            , Alonzo.uappPrices =
+        LedgerApi.UpgradeAlonzoPParams
+            { LedgerApi.uappCoinsPerUTxOWord = Ledger.CoinPerWord $ Ledger.Coin 34_482
+            , LedgerApi.uappCostModels = Alonzo.emptyCostModels
+            , LedgerApi.uappPrices =
                 Ledger.Prices
                     { Ledger.prSteps = fromMaybe maxBound $ Ledger.boundRational $ 721 % 10_000_000
                     , Ledger.prMem = fromMaybe maxBound $ Ledger.boundRational $ 577 % 10_000
                     }
-            , Alonzo.uappMaxTxExUnits = Ledger.ExUnits 140_000_000 10_000_000_000
-            , Alonzo.uappMaxBlockExUnits = Ledger.ExUnits 62_000_000 20_000_000_000
-            , Alonzo.uappMaxValSize = 5000
-            , Alonzo.uappCollateralPercentage = 150
-            , Alonzo.uappMaxCollateralInputs = 3
+            , LedgerApi.uappMaxTxExUnits = Ledger.ExUnits 140_000_000 10_000_000_000
+            , LedgerApi.uappMaxBlockExUnits = Ledger.ExUnits 62_000_000 20_000_000_000
+            , LedgerApi.uappMaxValSize = 5000
+            , LedgerApi.uappCollateralPercentage = 150
+            , LedgerApi.uappMaxCollateralInputs = 3
             }
 
 coinFromOutput :: Api.TxOut context Api.ConwayEra -> Integer
 coinFromOutput (Api.TxOut _ value _ _) =
-    Api.unLovelace $ Api.selectLovelace $ Api.txOutValueToValue value
+    case Api.selectLovelace $ Api.txOutValueToValue value of
+        Api.Coin lovelace -> lovelace
 
 balancePass :: Integer -> Either String (Integer, Integer)
 balancePass previousFee = do
@@ -84,7 +86,7 @@ balancePass previousFee = do
                 & Api.setTxOuts
                     [ Api.TxOut
                         fixtureAddress
-                        (Api.lovelaceToTxOutValue sbe recipient)
+                        (Api.lovelaceToTxOutValue sbe $ Api.Coin recipient)
                         Api.TxOutDatumNone
                         Script.ReferenceScriptNone
                     ]
@@ -92,16 +94,13 @@ balancePass previousFee = do
             Api.LedgerEpochInfo $
                 Slotting.fixedEpochInfo (Slotting.EpochSize 100) (Slotting.mkSlotLength 1000)
         utxo =
-            Api.UTxO
-                [
-                    ( fixtureTxIn
-                    , Api.TxOut
+            Api.UTxO $
+                Map.singleton fixtureTxIn $
+                    Api.TxOut
                         fixtureAddress
-                        (Api.lovelaceToTxOutValue sbe inputLovelace)
+                        (Api.lovelaceToTxOutValue sbe $ Api.Coin inputLovelace)
                         Api.TxOutDatumNone
                         Script.ReferenceScriptNone
-                    )
-                ]
     Api.BalancedTxBody balanced _ change (Ledger.Coin fee) <-
         either (Left . show) Right $
             Api.makeTransactionBodyAutoBalance

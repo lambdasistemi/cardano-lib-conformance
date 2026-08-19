@@ -13,5 +13,6 @@ executable cardano-api-outer-loop
     , cardano-ledger-alonzo
     , cardano-ledger-api
     , cardano-slotting
+    , containers
     , microlens
     , time
