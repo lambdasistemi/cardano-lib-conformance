@@ -55,6 +55,8 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Roadmap: roadmap.md
+  - Constitution: constitution.md
   - Balance fixpoint:
       - Domain: balance-fixpoint/README.md
       - Gap matrix: balance-fixpoint/gap-matrix.md
