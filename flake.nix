@@ -579,11 +579,6 @@
             '';
           };
           scalusExampleCheck = mkCheck "example-scalus-diffhandler" scalusExampleApp;
-          docsPython = pkgs.python3.withPackages (ps: [
-            ps.mkdocs
-            ps.mkdocs-material
-            ps.pymdown-extensions
-          ]);
           allApps = evidenceApps // {
             example-csl-outer-loop = cslExampleApp;
             example-evolution-outer-loop = evolutionExampleApp;
@@ -617,15 +612,11 @@
             example-tx-tools-native-hooks = txToolsExample;
             example-cardano-api-outer-loop = cardanoApiExample;
           };
-          devShells.docs = pkgs.mkShell {
-            packages = [ docsPython ];
-          };
         };
       perSystem = forAllSystems mkSystem;
     in {
       checks = nixpkgs.lib.mapAttrs (_: value: value.checks) perSystem;
       apps = nixpkgs.lib.mapAttrs (_: value: value.apps) perSystem;
       packages = nixpkgs.lib.mapAttrs (_: value: value.packages) perSystem;
-      devShells = nixpkgs.lib.mapAttrs (_: value: value.devShells) perSystem;
     };
 }
