@@ -1,0 +1,1 @@
+../../../balance-fixpoint/static/mesh-sdk.txt

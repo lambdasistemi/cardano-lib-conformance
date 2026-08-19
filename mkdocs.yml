@@ -1,0 +1,69 @@
+site_name: Cardano library conformance
+site_description: Pinned, executable interface and behavioral conformance checks for Cardano libraries
+site_url: https://lambdasistemi.github.io/cardano-lib-conformance/
+repo_url: https://github.com/lambdasistemi/cardano-lib-conformance
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.indexes
+    - navigation.sections
+    - navigation.path
+    - toc.integrate
+    - content.code.copy
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - tables
+  - footnotes
+  - def_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Home: index.md
+  - Balance fixpoint:
+      - Domain: balance-fixpoint/README.md
+      - Gap matrix: balance-fixpoint/gap-matrix.md
+      - Worked examples: balance-fixpoint/examples/README.md
+      - Raw probe handoffs: balance-fixpoint/handoffs.md
+      - Audits:
+          - Audit report 1: balance-fixpoint/audits/audit-report-1.md
+          - Audit report 2: balance-fixpoint/audits/audit-report-2.md
+  - Running the gate:
+      - Overview: run/index.md
+      - Per-check invocations: run/checks.md
+      - Floating drift mode: run/floating-drift.md
