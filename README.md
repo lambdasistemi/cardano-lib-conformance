@@ -108,3 +108,22 @@ FALSIFY=1 nix run .#tx-tools-p1-balance
 All 31 apps were observed failing under this mutation and then passing again
 with the mutation absent. The complete `CHECK-FALSIFIED` journal is in the
 worker `STATUS.md`.
+
+## Worked examples
+
+`examples/` contains runnable implementations of the caller-owned bounded
+balance loop and of the native in-loop hooks, each wired into the flake as a
+check (35 checks total): CSL and cardano-client-lib run end-to-end offline,
+Scalus compiles its `DiffHandler` example, Evolution SDK's example is
+type-checked. See `examples/README.md` for what each demonstrates and the
+exact invocations.
+
+## A conformance suite, as a side effect
+
+Beyond evidencing one skill, this repository is a capability conformance
+matrix for Cardano transaction builders: nine surfaces, four patterns, with
+interface conformance established by the pinned checks and behavioral
+conformance by the examples. In floating mode, a failing absence check means
+a library gained a capability; a failing presence check means a breaking
+regression. Library maintainers are welcome to PR their own cells with a
+check as proof.
