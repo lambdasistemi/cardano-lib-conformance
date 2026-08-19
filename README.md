@@ -1,8 +1,15 @@
 # Fixpoint evidence bundle
 
 This bundle turns the version-pinned API claims behind the `fixpoint` skill into
-31 runnable Nix checks. It also preserves the two independent audits, both gap
+31 source-evidence checks plus four worked-example checks. It also preserves the two independent audits, both gap
 matrices, and all nine raw probe handoffs byte-for-byte under `static/`.
+
+## Examples
+
+Runnable and compile-checked caller-owned bounded balance loops for CSL,
+Evolution SDK, cardano-client-lib, and Scalus are documented in
+[`examples/README.md`](examples/README.md). Each is wired into `nix flake check`;
+Mesh was dropped under the documented timebox priority.
 
 ## Run the pinned gate
 
@@ -101,3 +108,22 @@ FALSIFY=1 nix run .#tx-tools-p1-balance
 All 31 apps were observed failing under this mutation and then passing again
 with the mutation absent. The complete `CHECK-FALSIFIED` journal is in the
 worker `STATUS.md`.
+
+## Worked examples
+
+`examples/` contains runnable implementations of the caller-owned bounded
+balance loop and of the native in-loop hooks, each wired into the flake as a
+check (35 checks total): CSL and cardano-client-lib run end-to-end offline,
+Scalus compiles its `DiffHandler` example, Evolution SDK's example is
+type-checked. See `examples/README.md` for what each demonstrates and the
+exact invocations.
+
+## A conformance suite, as a side effect
+
+Beyond evidencing one skill, this repository is a capability conformance
+matrix for Cardano transaction builders: nine surfaces, four patterns, with
+interface conformance established by the pinned checks and behavioral
+conformance by the examples. In floating mode, a failing absence check means
+a library gained a capability; a failing presence check means a breaking
+regression. Library maintainers are welcome to PR their own cells with a
+check as proof.
