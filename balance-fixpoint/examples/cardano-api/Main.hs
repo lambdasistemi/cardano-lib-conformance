@@ -12,7 +12,7 @@ import Cardano.Slotting.EpochInfo qualified as Slotting
 import Cardano.Slotting.Slot qualified as Slotting
 import Cardano.Slotting.Time qualified as Slotting
 import Control.Monad (unless)
-import Control.Monad.Identity (Identity)
+import Data.Functor.Identity (Identity)
 import Data.Maybe (fromMaybe)
 import Data.Ratio ((%))
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
