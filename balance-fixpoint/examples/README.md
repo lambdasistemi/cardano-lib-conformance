@@ -16,7 +16,7 @@ separate heavy tier; `nix flake check` remains the fast default gate.
 
 ## Cardano Tx Tools
 
-[`tx-tools/Main.hs`](tx-tools/Main.hs) is a standalone offline GHC 9.12.3
+[`tx-tools/Main.hs`](https://github.com/lambdasistemi/cardano-lib-conformance/blob/init/balance-fixpoint/examples/tx-tools/Main.hs) is a standalone offline GHC 9.12.3
 program with synthetic protocol parameters and UTxO references. It runs the
 native `balanceFeeLoop` fee-dependent refund hook, then uses `draft`, `peek`,
 and `Convergence` to observe the final output coin and encode it into a spending
@@ -25,7 +25,7 @@ counts, complementing the P2, P3, and P4 source-evidence cells.
 
 ## cardano-api 10.19.1.0
 
-[`cardano-api/Main.hs`](cardano-api/Main.hs) rebuilds fresh `TxBodyContent`
+[`cardano-api/Main.hs`](https://github.com/lambdasistemi/cardano-lib-conformance/blob/init/balance-fixpoint/examples/cardano-api/Main.hs) rebuilds fresh `TxBodyContent`
 around `makeTransactionBodyAutoBalance` in an eight-pass caller-owned loop. The
 recipient output depends on the previously observed fee; each real candidate
 uses a synthetic UTxO and protocol-parameter fixture and is checked for value
