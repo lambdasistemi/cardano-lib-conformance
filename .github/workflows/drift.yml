@@ -1,0 +1,49 @@
+name: fixpoint-evidence-drift
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 1 * *"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  floating:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Check current upstream capability shapes
+        id: drift
+        continue-on-error: true
+        run: |
+          evolution_version=$(npm view @evolution-sdk/evolution version)
+          mesh_version=$(npm view @meshsdk/core version)
+          nix flake check --print-build-logs \
+            --override-input tx-tools github:lambdasistemi/cardano-tx-tools \
+            --override-input csl github:Emurgo/cardano-serialization-lib \
+            --override-input pallas github:txpipe/pallas \
+            --override-input ccl github:bloxbean/cardano-client-lib \
+            --override-input scalus github:scalus3/scalus \
+            --override-input cardano-api github:IntersectMBO/cardano-api \
+            --override-input cardano-ledger github:IntersectMBO/cardano-ledger \
+            --override-input evolution "https://registry.npmjs.org/@evolution-sdk/evolution/-/evolution-${evolution_version}.tgz" \
+            --override-input mesh-core "https://registry.npmjs.org/@meshsdk/core/-/core-${mesh_version}.tgz" \
+            --override-input mesh-transaction "https://registry.npmjs.org/@meshsdk/transaction/-/transaction-${mesh_version}.tgz" \
+            --override-input mesh-common "https://registry.npmjs.org/@meshsdk/common/-/common-${mesh_version}.tgz" \
+            2>&1 | tee drift.log
+      - name: Open or update drift issue
+        if: steps.drift.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Fixpoint evidence drift detected"
+          issue=$(gh issue list --state open --search "${title} in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body-file drift.log
+          else
+            gh issue create --title "$title" --body-file drift.log
+          fi
+          exit 1

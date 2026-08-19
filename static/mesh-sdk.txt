@@ -1,0 +1,37 @@
+Probe target
+  npm package: @meshsdk/core
+  version: 1.9.1
+  install command:
+    npm install --prefix handoffs/mesh-probe --ignore-scripts \
+      --no-audit --no-fund @meshsdk/core@1.9.1
+  result: exit 0, 214 packages installed
+
+The current release was inspected through its shipped
+@meshsdk/transaction TypeScript declarations and implementation.
+
+Inspected API
+  MeshTxBuilderCore
+    txOut(address: string, amount: Asset[])
+    txInRedeemerValue(redeemer: BuilderData["content"], ...)
+    changeAddress(address: string)
+    setFee(fee: string)
+    public meshTxBuilderBody: MeshTxBuilderBody
+  MeshTxBuilder
+    complete(customizedTx?: Partial<MeshTxBuilderBody>): Promise<string>
+    completeUnbalanced(customizedTx?: MeshTxBuilderBody): string
+    getActualFee(): bigint
+    calculateMinLovelaceForOutput(output: Output): bigint
+
+Implementation evidence
+  complete() sanitizes outputs, performs UTxO selection, evaluates redeemers,
+  updates fee/change from a TransactionPrototype, serializes the final body, and
+  returns CBOR hex. Internal coin-selection callbacks calculate cost, min coin,
+  and size, but no public callback receives an assembled candidate transaction.
+  txOut and redeemer methods accept fixed values. The final fee/body state and
+  CBOR are observable after completion, enabling a caller-owned fresh-builder
+  loop.
+
+Conclusion
+  P1 is supported. P2 and P4 are expressible with effort through a bounded
+  complete -> inspect body/CBOR -> reconstruct loop. P3 has no in-build public
+  observation/re-entry hook.

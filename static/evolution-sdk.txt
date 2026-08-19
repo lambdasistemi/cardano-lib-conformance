@@ -1,0 +1,36 @@
+Probe target
+  npm package: @evolution-sdk/evolution
+  version: 0.5.12
+  install command:
+    npm install --prefix handoffs/evolution-probe --ignore-scripts \
+      --no-audit --no-fund @evolution-sdk/evolution@0.5.12
+  result: exit 0, 39 packages installed
+
+The package was inspected through its shipped TypeScript declarations. A
+provider-free payment fixture was not available, so P1 uses API-surface evidence.
+
+Inspected members
+  dist/sdk/builders/TransactionBuilder.d.ts
+    Phase = "selection" | "changeCreation" | "feeCalculation" | "balance" |
+            "evaluation" | "collateral" | "fallback" | "complete"
+    PhaseContext includes calculatedFee and changeOutputs, but is internal phase
+    state rather than a public builder callback.
+    payToAddress(params: PayToAddressParams)
+    build(options?: BuildOptions)
+    Each build() creates fresh state; repeated calls are independent.
+  dist/sdk/builders/operations/Operations.d.ts
+    PayToAddressParams has fixed address and assets fields.
+  dist/sdk/builders/TransactionResult.d.ts
+    toTransaction(): Promise<Transaction>
+    estimateFee(): Promise<bigint>
+    Both are available on the result returned after build completes.
+  dist/sdk/builders/RedeemerBuilder.d.ts
+    SelfRedeemerFn = (input: IndexedInput) => Data
+    BatchRedeemerFn = (inputs: ReadonlyArray<IndexedInput>) => Data
+    IndexedInput contains only final input index and original UTxO, not fee,
+    outputs, or the assembled transaction.
+
+Conclusion
+  Plain fee/change balancing is part of build(). Fee-dependent outputs and a
+  final-output-dependent redeemer require an outer build -> inspect -> rebuild
+  loop. There is no public in-build final-transaction observation/re-entry hook.

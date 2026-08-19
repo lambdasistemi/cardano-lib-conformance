@@ -1,0 +1,31 @@
+Probe target
+  repo: /code/cardano-api
+  git HEAD: b951a6380b8896a199fd2c4b751600b16029233b
+  tag/package version: cardano-api-10.19.1.0
+  source: cardano-api/src/Cardano/Api/Tx/Internal/Fee.hs:1028-1051
+
+Inspected signature
+  makeTransactionBodyAutoBalance
+    :: ShelleyBasedEra era
+    -> SystemStart
+    -> LedgerEpochInfo
+    -> LedgerProtocolParameters era
+    -> Set PoolId
+    -> Map StakeCredential Coin
+    -> Map DRepCredential Coin
+    -> UTxO era
+    -> TxBodyContent BuildTx era
+    -> AddressInEra era
+    -> Maybe Word
+    -> Either (TxBodyErrorAutoBalance era) (BalancedTxBody era)
+
+The implementation comment states that it evaluates scripts, computes minimum
+fees, updates the fee, then balances and creates change. Its input is a fixed
+TxBodyContent and its result is returned only after auto-balancing; the type has
+no callback receiving the candidate transaction.
+
+Conclusion
+  Ordinary fee/change balancing is supported. A caller can express fee-dependent
+  outputs or a final-output-dependent redeemer by inspecting BalancedTxBody,
+  constructing a fresh TxBodyContent, and calling again in a bounded outer loop.
+  There is no in-call final-transaction observation/re-entry hook.

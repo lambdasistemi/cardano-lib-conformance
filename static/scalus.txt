@@ -1,0 +1,24 @@
+Probe target
+  repo: https://github.com/scalus3/scalus
+  git HEAD: 68449438e409f7e666315369e462d24273c1e7e6
+  stable package version: 1.0.0 (build.sbt)
+  method: bundled docs plus shallow upstream API inspection
+
+Inspected API
+  TransactionBuilder.scala
+    DiffHandler = (Value, Transaction) => Either[TxBalancingError, Transaction]
+    balanceFeeAndChangeWithTokens(..., diffHandler, ...)
+    bounded tail-recursive loop; BalanceDidNotConverge after the maximum
+    DelayedRedeemerSpec.redeemerBuilder: Transaction => Data
+    ensureMinAdaAll(protocolParams)
+  TxBuilder.scala
+    spend(..., redeemerBuilder: Transaction => Data)
+    payTo(..., datumBuilder: Transaction => Data)
+    complete(...) performs input selection and balancing.
+
+The diff handler receives every fee-bearing candidate from the internal bounded
+balance loop and returns the transaction for the next pass, so it supports
+fee-dependent outputs and final-transaction observation. Delayed redeemer/datum
+builders see the assembled transaction, but replacement precedes ensureMinAdaAll
+and fee/change balancing. A redeemer that must read the post-min-UTxO/post-balance
+output therefore needs a custom DiffHandler that recomputes it during iteration.

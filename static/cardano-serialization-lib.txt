@@ -1,0 +1,19 @@
+Probe target
+  repo: https://github.com/Emurgo/cardano-serialization-lib
+  git HEAD: 6b4253814f1831fee06cda2718fd47174960ace1
+  package version: 17.0.0 (rust/Cargo.toml)
+  method: bundled docs plus shallow upstream API inspection
+
+Inspected API
+  rust/src/builders/tx_builder.rs
+    TransactionBuilder::set_fee(&Coin)
+    TransactionBuilder::add_change_if_needed(&Address)
+    TransactionBuilder::build() -> TransactionBody
+    TransactionBuilder::build_tx() -> Transaction
+    TransactionBuilder::min_fee() -> Coin
+
+add_change_if_needed mutates the fee and adds/adjusts change. Its documentation
+requires calling it after all other body properties and warns that later edits
+can invalidate the calculated fee. Outputs and redeemers are fixed builder
+inputs; there is no callback receiving a candidate transaction. The mutable
+builder plus build/min_fee/set_fee permits a caller-owned rebuild loop.

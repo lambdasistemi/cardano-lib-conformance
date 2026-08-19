@@ -1,0 +1,30 @@
+Probe target
+  command source: /code/cardano-node at
+    97036a66bcf8c89f687ae57a048eecc0389977ef (tag 11.0.1)
+  command:
+    nix run /code/cardano-node#cardano-cli -- --version
+  output:
+    cardano-cli 11.0.0.0 - linux-x86_64 - ghc-9.6
+
+Flag inspection command
+  nix run /code/cardano-node#cardano-cli -- \
+    conway transaction build --help
+
+Relevant output
+  --tx-out ADDRESS VALUE
+      The transaction output as ADDRESS VALUE.
+  --change-address ADDRESS
+      Address where ADA in excess of the tx fee will go to.
+  --tx-in-redeemer-file JSON_FILE
+  --tx-in-redeemer-value JSON_VALUE
+  --mint-redeemer-file JSON_FILE
+  --mint-redeemer-value JSON_VALUE
+  --out-file FILEPATH
+      Output filepath of the JSON TxBody.
+  --calculate-plutus-script-cost FILEPATH
+      Where to write the script cost information.
+
+Conclusion
+  transaction build supplies ordinary auto-balancing. Outputs and redeemers are
+  fixed command inputs; the flag surface has no output callback, assembled-body
+  observation callback, or re-entry hook.

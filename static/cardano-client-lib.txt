@@ -1,0 +1,24 @@
+Probe target
+  repo: https://github.com/bloxbean/cardano-client-lib
+  git HEAD: 4f1ea9c9117d7744851f382314386cfb7b4f5939
+  project version: 0.8.0-pre5 (gradle.properties)
+  method: bundled README plus shallow upstream API inspection
+
+Inspected API
+  function/.../TxBuilder.java
+    @FunctionalInterface
+    void apply(TxBuilderContext context, Transaction txn)
+    default TxBuilder andThen(TxBuilder after)
+  function/.../FeeCalculators.java
+    feeCalculator(int noOfSigners, UpdateOutputFunction callback)
+    UpdateOutputFunction.accept(BigInteger fee, List<TransactionOutput> outputs)
+  function/.../BalanceTxBuilders.java
+    balanceTx(...) composes fee calculation and change adjustment.
+
+Conclusion
+  balanceTx provides ordinary balancing. The fee/output callback directly
+  supports fee-dependent outputs. Any custom TxBuilder sees and may transform
+  the assembled Transaction and can be composed before/after balancing, giving
+  a genuine observation hook. A final-output-dependent redeemer is expressible
+  with effort by composing a custom transformer and an explicitly bounded
+  rebalance loop; no dedicated convergence abstraction was found.

@@ -1,0 +1,35 @@
+Probe target
+  repo: /code/cardano-tx-tools
+  git HEAD: 7bfe95bf5ef3bfa846e62bcae94cf377b66ad0d0
+  describe: v0.2.3.0-14-g7bfe95b
+
+Verification command
+  nix build --no-link /code/cardano-tx-tools#checks.x86_64-linux.unit
+
+Result
+  exit 0
+  Built cardano-tx-tools-test-unit-tests-0.2.3.0 and the unit-check
+  derivation. This executes the pure unit suite, including BuildSpec and
+  MinUtxoSpec. E2E checks were not run because they require a live node.
+
+Inspected API/test evidence
+  src-tx-build/Cardano/Tx/Balance.hs:128
+    FeeNotConverged
+  src-tx-build/Cardano/Tx/Balance.hs:146
+    balanceTx :: ... -> Either BalanceError BalanceResult
+  src-tx-build/Cardano/Tx/Balance.hs:535
+    balanceFeeLoop :: PParams ConwayEra
+                   -> (Coin -> Either String (StrictSeq (TxOut ConwayEra)))
+                   -> Int -> [(TxIn, TxOut ConwayEra)] -> ConwayTx
+                   -> Either FeeLoopError ConwayTx
+  src-tx-build/Cardano/Tx/Build.hs:334
+    data Convergence a = Iterate a | Ok a
+  src-tx-build/Cardano/Tx/Build.hs:537
+    Peek :: (ConwayTx -> Convergence a) -> TxInstr q e a
+  test/Cardano/Tx/Build/MinUtxoSpec.hs:229-233
+    ix <- payTo stubAddr tokenValueOnly
+    lov <- peek (observeTxOutCoin ix)
+    _ <- spendScript treasuryIn (toRedeemer lov)
+    tx = draft pp prog
+  src-tx-build/Cardano/Tx/Build.hs:1439 and 1558
+    build closes the outer evaluation/balance loop through balanceTxWith.

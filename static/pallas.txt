@@ -1,0 +1,20 @@
+Probe target
+  repo: https://github.com/txpipe/pallas
+  git HEAD: cdee91d931132338570e6e6fef3191a61586d61b
+  workspace version: 1.1.1
+  method: bundled docs plus shallow upstream API inspection
+
+Inspected API
+  pallas-txbuilder/src/conway.rs
+    BuildConway::build_conway_raw(self) -> BuiltTransaction
+    Documentation: "Raw means no balancing: fees, collateral, and execution
+    units must be provided by the caller" and "no automatic fee/ex-units
+    calculation."
+  pallas-txbuilder/src/transaction/model.rs
+    StagingTransaction::fee(u64), output(Output), add_*_redeemer(...)
+
+Conclusion
+  pallas-txbuilder is an ergonomic raw assembler, not a balancing surface. The
+  four balancing/fixpoint capability questions are therefore NOT-APPLICABLE to
+  this API rather than unsupported guesses. A caller must supply a separate
+  balancing/fixpoint algorithm.
