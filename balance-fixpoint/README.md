@@ -1,16 +1,17 @@
 # Balance-fixpoint conformance domain
 
 This domain turns the version-pinned API claims behind the `balance-fixpoint`
-skill into 31 source-evidence checks, four worked-example checks, and two
-independent runtime cross-validation checks. It also preserves the two independent audits, both gap
+skill into 30 light source-evidence checks, four light worked-example checks,
+two independent runtime cross-validation checks, and three heavy Haskell
+checks. It also preserves the two independent audits, both gap
 matrices, and all nine raw probe handoffs byte-for-byte under `static/`.
 
 ## Examples
 
-Runnable and compile-checked caller-owned bounded balance loops for CSL,
-Evolution SDK, cardano-client-lib, and Scalus are documented in
-[`examples/README.md`](examples/README.md). Each is wired into `nix flake check`;
-Mesh was dropped under the documented timebox priority.
+Runnable and compile-checked balance examples for Cardano Tx Tools,
+cardano-api, CSL, Evolution SDK, cardano-client-lib, and Scalus are documented
+in [`examples/README.md`](examples/README.md). The four non-Haskell examples
+remain in `nix flake check`; the two Haskell examples are in `.#heavy-checks`.
 
 ## Run the pinned gate
 
@@ -18,13 +19,24 @@ Mesh was dropped under the documented timebox priority.
 nix flake check
 ```
 
-`flake.lock` fixes every source and its content hash. The two npm releases are
+`flake.lock` fixes every source and its content hash. The default command is the
+36-check light gate. Run the Haskell tier separately on the NixOS builder:
+
+```sh
+nix build --accept-flake-config .#heavy-checks
+```
+
+That aggregate builds `tx-tools-unit`, `example-tx-tools-native-hooks`, and
+`example-cardano-api-outer-loop` with GHC 9.12.3. `flake.nix` declares the IOG
+substituter and trusted key so `--accept-flake-config` enables its binary cache.
+
+The two npm releases are
 fixed at `@evolution-sdk/evolution@0.5.12` and `@meshsdk/core@1.9.1`; Mesh's
 `transaction` and `common` packages are independently pinned at `1.9.1` because
 the relevant implementation and evaluator declarations live there.
 
-The `tx-tools-unit` check builds the upstream pinned pure unit check, not a text
-surrogate. The other checks invoke the same strict-shell programs exposed under
+The heavy `tx-tools-unit` derivation builds the upstream pinned pure unit check,
+not a text surrogate. The light checks invoke the same strict-shell programs exposed under
 `apps`; they inspect their flake input store paths using `rg` and fail when a
 required declaration disappears. The `*-no-candidate-hook` checks also fail with
 an explicit “update the balance-fixpoint skill” diagnostic if a currently absent hook
@@ -38,7 +50,7 @@ redeemer/min-UTxO value.
 
 | Surface and pin | P1 | P2 | P3 | P4 | Establishment |
 |---|---|---|---|---|---|
-| Cardano Tx Tools `7bfe95b` | `tx-tools-p1-balance` + `tx-tools-unit` | `tx-tools-p2-fee-output` | `tx-tools-p3-peek` | `tx-tools-p4-recursive-redeemer` | probe evidence; independently re-derived by final external audit |
+| Cardano Tx Tools `7bfe95b` | `tx-tools-p1-balance` + heavy `tx-tools-unit` | `tx-tools-p2-fee-output` | `tx-tools-p3-peek` | `tx-tools-p4-recursive-redeemer` | probe evidence; independently re-derived by final external audit |
 | Evolution SDK `0.5.12` | `evolution-p1-balance-phases` | `evolution-p2-fixed-output-rebuild` | `evolution-p3-evaluator-exunits-only` | `evolution-p4-indexed-redeemer-only` | probe evidence; audit corrected P3 to “candidate visible, ExUnits-only return” |
 | Cardano CLI `11.0.0.0` | static matrix/`cardano-cli.txt` | static matrix/`cardano-cli.txt` | static matrix/`cardano-cli.txt` | static matrix/`cardano-cli.txt` | probe CLI help; audit corroborated auto-balance only |
 | cardano-api `b951a63` (`10.19.1.0`) | `cardano-api-p1-autobalance` | `cardano-api-p2-fixed-body-rebuild` | `cardano-api-p3-no-candidate-hook` | `cardano-api-p4-fixed-redeemer-rebuild` | probe evidence; independently re-derived by final external audit |
@@ -106,7 +118,7 @@ that cannot be present. This is the test-of-the-test used during bundle creation
 FALSIFY=1 nix run .#tx-tools-p1-balance
 ```
 
-All 31 apps were observed failing under this mutation and then passing again
+All 30 light evidence apps were observed failing under this mutation and then passing again
 with the mutation absent. The complete `CHECK-FALSIFIED` journal is in the
 worker `STATUS.md`.
 
@@ -133,12 +145,13 @@ and applying this cross-validation tier is planned work.
 ## Worked examples
 
 `examples/` contains runnable implementations of the caller-owned bounded
-balance loop and of the native in-loop hooks, each wired into the flake as a
-check (37 checks total): CSL and cardano-client-lib run end-to-end offline and
+balance loop and of the native in-loop hooks, each wired into the flake's light
+or heavy tier: CSL and cardano-client-lib run end-to-end offline and
 emit cross-validated CBOR,
 Scalus compiles its `DiffHandler` example, Evolution SDK's example is
-type-checked. See `examples/README.md` for what each demonstrates and the
-exact invocations.
+type-checked, Cardano Tx Tools exercises both native hook classes at runtime,
+and cardano-api supplies a bounded outer loop around real autobalance. See
+`examples/README.md` for what each demonstrates and the exact invocations.
 
 ## A conformance suite, as a side effect
 

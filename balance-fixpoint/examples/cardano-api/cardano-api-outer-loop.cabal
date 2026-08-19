@@ -1,0 +1,18 @@
+cabal-version: 3.0
+name: cardano-api-outer-loop
+version: 0.1.0.0
+build-type: Simple
+
+executable cardano-api-outer-loop
+  main-is: Main.hs
+  default-language: GHC2021
+  ghc-options: -Wall -Wcompat -Werror -Wincomplete-uni-patterns -Wincomplete-record-updates
+  build-depends:
+      base >=4.18 && <5
+    , cardano-api ==10.19.1.0
+    , cardano-ledger-alonzo
+    , cardano-ledger-api
+    , cardano-slotting
+    , containers
+    , microlens
+    , time

@@ -1,0 +1,42 @@
+cabal-version:      3.4
+name:               tx-tools-native-hooks
+version:            0.1.0.0
+synopsis:           Worked balance-fixpoint native hooks
+description:        Offline worked examples for Cardano Tx Tools native fixpoint hooks.
+homepage:           https://github.com/lambdasistemi/cardano-lib-conformance
+bug-reports:        https://github.com/lambdasistemi/cardano-lib-conformance/issues
+license:            Apache-2.0
+author:             Lambda Sistemi
+maintainer:         developers@lambdasistemi.com
+category:           Cardano
+build-type:         Simple
+extra-doc-files:    README.md
+
+executable tx-tools-native-hooks
+  main-is:          Main.hs
+  default-language: GHC2021
+  ghc-options:
+    -Wall -Werror -Wunused-imports -Wunused-packages
+    -Wmissing-export-lists -Wname-shadowing
+    -Wdeferred-out-of-scope-variables -Wpartial-type-signatures
+    -Wredundant-constraints
+  default-extensions:
+    DataKinds
+    ImportQualifiedPost
+    OverloadedStrings
+    TypeApplications
+  build-depends:
+    , base                       >=4.21 && <5
+    , bytestring                 >=0.12 && <0.13
+    , cardano-crypto-class       >=2.2  && <3
+    , cardano-ledger-alonzo      >=1.15 && <3
+    , cardano-ledger-api         >=1.13 && <3
+    , cardano-ledger-conway      >=1.21 && <3
+    , cardano-ledger-core        >=1.19 && <3
+    , cardano-ledger-mary        >=1.10 && <3
+    , cardano-strict-containers  >=0.1  && <0.3
+    , cardano-tx-tools:tx-build  ==0.2.3.0
+    , containers                 >=0.7  && <0.8
+    , data-default               >=0.8  && <0.9
+    , microlens                  >=0.4  && <0.5
+    , plutus-tx                  >=1.60 && <3

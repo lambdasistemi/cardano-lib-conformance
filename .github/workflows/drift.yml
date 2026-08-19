@@ -11,17 +11,20 @@ permissions:
 
 jobs:
   floating:
-    runs-on: ubuntu-latest
+    runs-on: nixos
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v31
+      - uses: actions/checkout@v6
+      - uses: cachix/cachix-action@v17
+        with:
+          name: paolino
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
       - name: Check current upstream capability shapes
         id: drift
         continue-on-error: true
         run: |
           evolution_version=$(npm view @evolution-sdk/evolution version)
           mesh_version=$(npm view @meshsdk/core version)
-          nix flake check --print-build-logs \
+          nix flake check --accept-flake-config --print-build-logs \
             --override-input tx-tools github:lambdasistemi/cardano-tx-tools \
             --override-input csl github:Emurgo/cardano-serialization-lib \
             --override-input pallas github:txpipe/pallas \
