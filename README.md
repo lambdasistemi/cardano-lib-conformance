@@ -1,8 +1,15 @@
 # Fixpoint evidence bundle
 
 This bundle turns the version-pinned API claims behind the `fixpoint` skill into
-31 runnable Nix checks. It also preserves the two independent audits, both gap
+31 source-evidence checks plus four worked-example checks. It also preserves the two independent audits, both gap
 matrices, and all nine raw probe handoffs byte-for-byte under `static/`.
+
+## Examples
+
+Runnable and compile-checked caller-owned bounded balance loops for CSL,
+Evolution SDK, cardano-client-lib, and Scalus are documented in
+[`examples/README.md`](examples/README.md). Each is wired into `nix flake check`;
+Mesh was dropped under the documented timebox priority.
 
 ## Run the pinned gate
 

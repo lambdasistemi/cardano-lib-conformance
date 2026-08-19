@@ -367,9 +367,117 @@
             ${lib.getExe txToolsUnitApp}
             touch $out
           '';
-          allApps = evidenceApps // { tx-tools-unit = txToolsUnitApp; };
+          cslExampleSource = pkgs.runCommand "csl-example-source" { } ''
+            cp -R ${inputs.csl}/. $out
+            chmod -R u+w $out
+            mkdir -p $out/rust/examples
+            cp ${./examples/csl/outer_loop.rs} $out/rust/examples/outer_loop.rs
+          '';
+          cslExample = pkgs.rustPlatform.buildRustPackage {
+            pname = "csl-outer-loop";
+            version = "17.0.0";
+            src = "${cslExampleSource}/rust";
+            cargoLock.lockFile = "${inputs.csl}/rust/Cargo.lock";
+            cargoBuildFlags = [ "--example" "outer_loop" ];
+            doCheck = false;
+            installPhase = ''
+              runHook preInstall
+              mkdir -p $out/bin
+              cp target/*/release/examples/outer_loop $out/bin/csl-outer-loop
+              runHook postInstall
+            '';
+          };
+          cslExampleApp = pkgs.writeShellApplication {
+            name = "example-csl-outer-loop";
+            runtimeInputs = [ cslExample ];
+            text = ''csl-outer-loop'';
+          };
+          cslExampleCheck = mkCheck "example-csl-outer-loop" cslExampleApp;
+          evolutionExampleApp = pkgs.writeShellApplication {
+            name = "example-evolution-outer-loop";
+            runtimeInputs = [ pkgs.coreutils pkgs.nodePackages.typescript pkgs.ripgrep ];
+            text = ''
+              work=$(mktemp -d)
+              trap 'rm -rf "$work"' EXIT
+              mkdir -p "$work/node_modules/@evolution-sdk"
+              ln -s ${inputs.evolution} "$work/node_modules/@evolution-sdk/evolution"
+              cp ${./examples/evolution/outer-loop.ts} "$work/outer-loop.ts"
+              tsc --noEmit --strict --skipLibCheck --target ES2022 \
+                --module NodeNext --moduleResolution NodeNext "$work/outer-loop.ts"
+              if [[ "''${FALSIFY:-0}" == "1" ]]; then
+                if rg --fixed-strings --quiet 'fresh build state' "$work/outer-loop.ts"; then
+                  echo "FALSIFY: required fresh-builder marker was unexpectedly accepted" >&2
+                  exit 1
+                fi
+              fi
+            '';
+          };
+          evolutionExampleCheck = mkCheck "example-evolution-outer-loop" evolutionExampleApp;
+          mavenJar = artifact: hash: pkgs.fetchurl {
+            url = "https://repo1.maven.org/maven2/${artifact}";
+            inherit hash;
+          };
+          cclJars = [
+            (mavenJar "com/bloxbean/cardano/cardano-client-function/0.7.2/cardano-client-function-0.7.2.jar" "sha256-vgcKH49mK+kCFIcRE0xHK2i0xBYCqYoLP5WNPpTqs6Q=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-transaction-spec/0.7.2/cardano-client-transaction-spec-0.7.2.jar" "sha256-zPo7O7TT2E4jWZaIaaY5PeFe5nwLsMznjzwLCMUIu5Y=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-core-api/0.7.2/cardano-client-core-api-0.7.2.jar" "sha256-eyatkrmI+AAxVRZqJ06j+nUacTsp2TKs3FBk0pYxSTE=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-address/0.7.2/cardano-client-address-0.7.2.jar" "sha256-UKY3iLXqHJ/czoBb4pCf2IxUAhWK6QuSReSIx6TXhxE=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-common/0.7.2/cardano-client-common-0.7.2.jar" "sha256-JA3z8CndA3jlb7GeTGzoTxm1U07BcwlR1BN9cfSax2o=")
+            (mavenJar "com/bloxbean/cardano/cardano-client-crypto/0.7.2/cardano-client-crypto-0.7.2.jar" "sha256-C5h87II/DRl4v8jKU0gzNO0jfD4rk3s4ImFd9w8z5n4=")
+            (mavenJar "org/bouncycastle/bcprov-jdk18on/1.78/bcprov-jdk18on-1.78.jar" "sha256-G/chsJdYs/VfKlyHW2F47GxB3drYVLDerUsnojbxlDo=")
+            (mavenJar "org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar" "sha256-e3UdlSBhlU1av+1xgcH2RdM2CRtnmJFZHWMynGIuuDI=")
+          ];
+          cclClasspath = lib.concatStringsSep ":" (map toString cclJars);
+          cclExample = pkgs.runCommand "ccl-native-hook-classes" {
+            nativeBuildInputs = [ pkgs.jdk17_headless ];
+          } ''
+            mkdir -p $out
+            cp ${./examples/ccl/OuterLoop.java} OuterLoop.java
+            javac -cp ${lib.escapeShellArg cclClasspath} -d $out OuterLoop.java
+          '';
+          cclExampleApp = pkgs.writeShellApplication {
+            name = "example-ccl-native-hook";
+            runtimeInputs = [ pkgs.jdk17_headless ];
+            text = ''java -cp ${lib.escapeShellArg "${cclExample}:${cclClasspath}"} OuterLoop'';
+          };
+          cclExampleCheck = mkCheck "example-ccl-native-hook" cclExampleApp;
+          scalusJars = [
+            (mavenJar "org/scalus/scalus-cardano-ledger_3/1.0.0/scalus-cardano-ledger_3-1.0.0.jar" "sha256-2lHeVj9nbi0JWVQ4gdqzHJJ9bkMF3Qk1KbkQZXKWOrs=")
+            (mavenJar "org/scalus/scalus_3/1.0.0/scalus_3-1.0.0.jar" "sha256-3RxWn95htGg/Mfft2AOnnzk1Gyogfolh6Z+307N4H3c=")
+          ];
+          scalusClasspath = lib.concatStringsSep ":" (map toString scalusJars);
+          scalusExampleApp = pkgs.writeShellApplication {
+            name = "example-scalus-diffhandler";
+            runtimeInputs = [ pkgs.coreutils pkgs.scala_3 pkgs.ripgrep ];
+            text = ''
+              work=$(mktemp -d)
+              trap 'rm -rf "$work"' EXIT
+              scalac -classpath ${lib.escapeShellArg scalusClasspath} -d "$work" \
+                ${./examples/scalus/OuterLoop.scala}
+              if [[ "''${FALSIFY:-0}" == "1" ]]; then
+                if rg --fixed-strings --quiet 'fresh builder' ${./examples/scalus/OuterLoop.scala}; then
+                  echo "FALSIFY: required fresh-builder marker was unexpectedly accepted" >&2
+                  exit 1
+                fi
+              fi
+            '';
+          };
+          scalusExampleCheck = mkCheck "example-scalus-diffhandler" scalusExampleApp;
+          allApps = evidenceApps // {
+            tx-tools-unit = txToolsUnitApp;
+            example-csl-outer-loop = cslExampleApp;
+            example-evolution-outer-loop = evolutionExampleApp;
+            example-ccl-native-hook = cclExampleApp;
+            example-scalus-diffhandler = scalusExampleApp;
+          };
         in {
-          checks = evidenceChecks // { tx-tools-unit = txToolsUnit; };
+          checks = evidenceChecks // {
+            tx-tools-unit = txToolsUnit;
+            example-csl-outer-loop = cslExampleCheck;
+            example-evolution-outer-loop = evolutionExampleCheck;
+            example-ccl-native-hook = cclExampleCheck;
+            example-scalus-diffhandler = scalusExampleCheck;
+          };
           apps = lib.mapAttrs (_: app: {
             type = "app";
             program = lib.getExe app;
