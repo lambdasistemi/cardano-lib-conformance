@@ -1,3 +1,11 @@
+# Scalus reusable outer loop
+
+This complete Scalus 1.0.0 example exposes `balanceWith`, which accepts a fresh builder provider, typed `DiffHandler` output computation, and a caller-owned bound. `runExample` supplies the refund handler and preserves the distinct `NonConvergent` error.
+
+## Complete source
+
+<!-- BEGIN INLINE SOURCE -->
+```scala
 import scalus.cardano.ledger.{Transaction, Value}
 import scalus.cardano.txbuilder.{DiffHandler, TxBalancingError}
 
@@ -35,3 +43,11 @@ object OuterLoop:
       bound: Int = 8
   ): Either[Throwable, Transaction] =
     balanceWith(initial, builderProvider, refundHandler, bound)
+```
+<!-- END INLINE SOURCE -->
+
+## Run or check
+
+```sh
+nix build .#checks.x86_64-linux.example-scalus-diffhandler
+```

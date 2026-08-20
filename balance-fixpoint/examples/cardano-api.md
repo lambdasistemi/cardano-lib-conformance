@@ -1,3 +1,11 @@
+# cardano-api reusable outer loop
+
+This complete cardano-api 10.19.1.0 example exposes `balanceWith`, which accepts a candidate builder/provider callback, a fee-dependent `computeOutputs` callback, and a caller-owned bound. `runOuterLoop` supplies the synthetic fixture and reports the distinct `NonConvergent` failure.
+
+## Complete source
+
+<!-- BEGIN INLINE SOURCE -->
+```haskell
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (
@@ -191,3 +199,11 @@ main :: IO ()
 main = do
     falsify <- lookupEnv "FALSIFY"
     runOuterLoop $ maybe 8 (const 1) falsify
+```
+<!-- END INLINE SOURCE -->
+
+## Run or check
+
+```sh
+nix run --accept-flake-config .#example-cardano-api-outer-loop
+```

@@ -1,0 +1,1 @@
+--8<-- "balance-fixpoint/examples/scalus.md"

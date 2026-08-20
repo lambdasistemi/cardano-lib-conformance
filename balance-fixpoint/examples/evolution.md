@@ -1,3 +1,11 @@
+# Evolution SDK reusable outer loop
+
+This complete Evolution SDK 0.5.12 example exposes `balanceWith`, which accepts the builder provider, offline provider handles, a fee-dependent `computeOutputs` callback, and a caller-owned bound. `runExample` wires the defaults and preserves the distinct `NonConvergent` error.
+
+## Complete source
+
+<!-- BEGIN INLINE SOURCE -->
+```typescript
 import * as Assets from "@evolution-sdk/evolution/Assets";
 import type * as Address from "@evolution-sdk/evolution/Address";
 import type * as UTxO from "@evolution-sdk/evolution/UTxO";
@@ -79,3 +87,11 @@ export function runExample(
 ): Promise<{ fee: bigint; refund: bigint; passes: number }> {
   return balanceWith(makeTxBuilder, fixture, feeDependentOutputs, bound);
 }
+```
+<!-- END INLINE SOURCE -->
+
+## Run or check
+
+```sh
+nix build .#checks.x86_64-linux.example-evolution-outer-loop
+```

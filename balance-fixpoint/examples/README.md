@@ -14,6 +14,16 @@ Together these examples cover all four capability classes: ordinary balancing
 candidate-derived redeemer or min-UTxO data (P4). Haskell examples live in the
 separate heavy tier; `nix flake check` remains the fast default gate.
 
+Each page below contains the complete source for its stack, including the
+reusable bounded function and the example entry point that calls it:
+
+- [Cardano Tx Tools](tx-tools.md)
+- [cardano-api](cardano-api.md)
+- [Cardano Serialization Lib](csl.md)
+- [Evolution SDK](evolution.md)
+- [cardano-client-lib](ccl.md)
+- [Scalus](scalus.md)
+
 ## Cardano Tx Tools
 
 [`tx-tools/Main.hs`](https://github.com/lambdasistemi/cardano-lib-conformance/blob/init/balance-fixpoint/examples/tx-tools/Main.hs) is a standalone offline GHC 9.12.3

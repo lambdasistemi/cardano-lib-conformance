@@ -1,3 +1,11 @@
+# Cardano Tx Tools reusable balance function
+
+This complete GHC 9.12.3 example exposes `balanceWith`, which accepts pinned protocol parameters, a fee-dependent `computeOutputs` callback, a transaction template, and a caller-owned bound. `runFeeHook` supplies the offline fixture and preserves the separate `NonConvergent` failure.
+
+## Complete source
+
+<!-- BEGIN INLINE SOURCE -->
+```haskell
 {-# LANGUAGE EmptyCase #-}
 
 module Main (
@@ -251,3 +259,11 @@ main = do
         Nothing -> 10
         Just _ -> 1
     runPeekHook
+```
+<!-- END INLINE SOURCE -->
+
+## Run or check
+
+```sh
+nix run --accept-flake-config .#example-tx-tools-native-hooks
+```
