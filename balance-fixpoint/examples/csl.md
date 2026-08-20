@@ -1,3 +1,11 @@
+# Cardano Serialization Lib reusable outer loop
+
+This complete CSL 17.0.0 example exposes `balance_with`, which accepts a fresh-builder provider, a fee-dependent `compute_outputs` callback, and a caller-owned bound. `main` supplies the offline fixture and exercises the distinct `BalanceError::NonConvergent` case.
+
+## Complete source
+
+<!-- BEGIN INLINE SOURCE -->
+```rust
 use cardano_serialization_lib::*;
 
 const INPUT: u64 = 5_000_000;
@@ -121,3 +129,11 @@ fn main() {
     }
     println!("CSL outer loop converged in {passes} passes at fee {fee}");
 }
+```
+<!-- END INLINE SOURCE -->
+
+## Run or check
+
+```sh
+nix run .#example-csl-outer-loop
+```

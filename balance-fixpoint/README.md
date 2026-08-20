@@ -2,8 +2,8 @@
 
 This domain turns the version-pinned API claims behind the `balance-fixpoint`
 skill into 30 light source-evidence checks, four light worked-example checks,
-two independent runtime cross-validation checks, and three heavy Haskell
-checks. It also preserves the two independent audits, both gap
+one documentation-drift check, two independent runtime cross-validation
+checks, and three heavy Haskell checks. It also preserves the two independent audits, both gap
 matrices, and all nine raw probe handoffs byte-for-byte under `static/`.
 
 ## Examples
@@ -20,7 +20,7 @@ nix flake check
 ```
 
 `flake.lock` fixes every source and its content hash. The default command is the
-36-check light gate. Run the Haskell tier separately on the NixOS builder:
+37-check light gate. Run the Haskell tier separately on the NixOS builder:
 
 ```sh
 nix build --accept-flake-config .#heavy-checks
@@ -120,7 +120,9 @@ FALSIFY=1 nix run .#tx-tools-p1-balance
 
 All 30 light evidence apps were observed failing under this mutation and then passing again
 with the mutation absent. The complete `CHECK-FALSIFIED` journal is in the
-worker `STATUS.md`.
+worker `STATUS.md`. `examples-docs-inline` separately compares every inlined
+page with its real source file and was also observed failing under injected
+documentation drift before passing unchanged.
 
 ## Tier-1 cross-validation
 
@@ -144,9 +146,11 @@ and applying this cross-validation tier is planned work.
 
 ## Worked examples
 
-`examples/` contains runnable implementations of the caller-owned bounded
-balance loop and of the native in-loop hooks, each wired into the flake's light
-or heavy tier: CSL and cardano-client-lib run end-to-end offline and
+`examples/` contains reusable functions for the caller-owned bounded balance
+loop and the native in-loop hooks. Each stack has a per-stack Markdown page
+whose complete source is guarded against drift by `examples-docs-inline`.
+The examples remain wired into the flake's light or heavy tier: CSL and
+cardano-client-lib run end-to-end offline and
 emit cross-validated CBOR,
 Scalus compiles its `DiffHandler` example, Evolution SDK's example is
 type-checked, Cardano Tx Tools exercises both native hook classes at runtime,

@@ -1,16 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: (none) → 1.0.0
-- Modified principles: none (initial ratification)
-- Added sections: Core Principles (I–VIII), Evidence and Tiers, Change
-  Workflow, Governance
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: Change Workflow (cell flips now require the proving
+  check and gap-matrix page update in the same PR)
+- Added sections: Principle IX, Record Primacy
 - Removed sections: none
 - Templates requiring updates:
   - ⚠ .specify/templates/plan-template.md — absent; this repository has no
     Spec Kit templates installed, so no Constitution Check block exists yet
   - ⚠ .specify/templates/spec-template.md — absent
   - ⚠ .specify/templates/tasks-template.md — absent
-  - ✅ docs/constitution.md — surfaces this file in the documentation site
+  - ✅ docs/constitution.md — includes this canonical file verbatim
   - ✅ README.md — already states the gate and domain model this codifies
 - Follow-up TODOs: none
 -->
@@ -87,6 +87,14 @@ exist: inspect upstream, then update the skill and the matrix. A failing
 presence check means a possible breaking regression. Floating red is review
 evidence, and MUST NOT be resolved by weakening the check.
 
+### IX. Record Primacy (NON-NEGOTIABLE)
+
+Documentation, specifications, vision, and acceptance outrank implementation,
+always. Code is regenerable from a good record; the record is not regenerable
+from code. Every PR MUST ship the documentation needed to explain and verify
+its change in the same diff. Scope cuts land on implementation, never on the
+record that defines the intended outcome and its acceptance.
+
 ## Evidence and Tiers
 
 - One root Nix flake is the unified gate for every domain.
@@ -103,8 +111,10 @@ evidence, and MUST NOT be resolved by weakening the check.
 
 ## Change Workflow
 
-- A capability claim changes only together with the check that establishes
-  it; documentation and matrix cells follow the check, never lead it.
+- A capability claim or matrix cell flips ONLY in the same PR as the check
+  that establishes it. The corresponding gap-matrix documentation page MUST
+  update in that same diff; documentation and matrix cells follow the check,
+  never lead it.
 - New checks land with their falsification observation.
 - Scheduled floating runs open or update a drift issue with the full log;
   drift is triaged as review evidence and closed by updating claims, not by
@@ -123,4 +133,4 @@ MAJOR for removing or redefining a principle, MINOR for adding a principle
 or materially expanding guidance, PATCH for clarifications and wording. The
 version line below is updated in the same PR as the change it describes.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-19 | **Last Amended**: 2026-08-19
+**Version**: 1.1.0 | **Ratified**: 2026-08-19 | **Last Amended**: 2026-08-20

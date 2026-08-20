@@ -10,12 +10,15 @@ nix flake check
 
 That command runs all 37 checks of the `balance-fixpoint` domain.
 
-## Light tier — source evidence
+## Light tier — source and documentation evidence
 
 The source-evidence checks inspect the pinned flake input store paths with
 `rg` and fail when a required declaration disappears. The `*-no-candidate-hook`
 checks are absence checks: they also fail, with an explicit "update the
 balance-fixpoint skill" diagnostic, if a currently absent hook appears.
+
+`examples-docs-inline` compares the complete code block on every per-stack
+example page with the real source file and fails on any byte-level drift.
 
 These checks build nothing from the upstream sources beyond fetching them,
 so they are the cheap tier. Run one at a time with the

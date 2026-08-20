@@ -15,7 +15,7 @@ a falsifiable era-readiness dashboard when the ecosystem needs it most.
 
 | Domain | Capability | Evidence |
 |---|---|---|
-| [`balance-fixpoint`](balance-fixpoint/README.md) | Bounded transaction balancing when outputs or redeemers depend on the candidate transaction | 30 light interface checks, four light worked-example checks, two runtime cross-validations, and three heavy Haskell checks |
+| [`balance-fixpoint`](balance-fixpoint/README.md) | Bounded transaction balancing when outputs or redeemers depend on the candidate transaction | 30 light interface checks, one documentation-drift check, four light worked-example checks, two runtime cross-validations, and three heavy Haskell checks |
 
 The first domain retains its original check names for compatibility. Future
 domains should prefix check names with their domain when ambiguity is possible.

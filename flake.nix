@@ -579,11 +579,61 @@
             '';
           };
           scalusExampleCheck = mkCheck "example-scalus-diffhandler" scalusExampleApp;
+          examplesDocsInlineApp = pkgs.writeShellApplication {
+            name = "examples-docs-inline";
+            runtimeInputs = [ pkgs.coreutils pkgs.diffutils pkgs.gawk pkgs.gnused ];
+            text = ''
+              work=$(mktemp -d)
+              trap 'rm -rf "$work"' EXIT
+
+              check_inline() {
+                label=$1
+                source=$2
+                page=$3
+                actual="$work/$label"
+
+                awk '
+                  /^<!-- BEGIN INLINE SOURCE -->$/ { inside = 1; next }
+                  /^<!-- END INLINE SOURCE -->$/ { inside = 0 }
+                  inside { print }
+                ' "$page" | sed '1d;$d' > "$actual"
+
+                if [[ "''${FALSIFY:-0}" == "1" && "$label" == "tx-tools" ]]; then
+                  printf '%s\n' '__FALSIFIED_DOC_DRIFT__' >> "$actual"
+                fi
+                diff -u "$source" "$actual"
+              }
+
+              check_inline tx-tools \
+                ${./balance-fixpoint/examples/tx-tools/Main.hs} \
+                ${./balance-fixpoint/examples/tx-tools.md}
+              check_inline cardano-api \
+                ${./balance-fixpoint/examples/cardano-api/Main.hs} \
+                ${./balance-fixpoint/examples/cardano-api.md}
+              check_inline csl \
+                ${./balance-fixpoint/examples/csl/outer_loop.rs} \
+                ${./balance-fixpoint/examples/csl.md}
+              check_inline evolution \
+                ${./balance-fixpoint/examples/evolution/outer-loop.ts} \
+                ${./balance-fixpoint/examples/evolution.md}
+              check_inline ccl \
+                ${./balance-fixpoint/examples/ccl/OuterLoop.java} \
+                ${./balance-fixpoint/examples/ccl.md}
+              check_inline scalus \
+                ${./balance-fixpoint/examples/scalus/OuterLoop.scala} \
+                ${./balance-fixpoint/examples/scalus.md}
+            '';
+          };
+          examplesDocsInlineCheck =
+            mkCheck "examples-docs-inline" examplesDocsInlineApp;
           allApps = evidenceApps // {
+            example-tx-tools-native-hooks = txToolsExampleApp;
+            example-cardano-api-outer-loop = cardanoApiExampleApp;
             example-csl-outer-loop = cslExampleApp;
             example-evolution-outer-loop = evolutionExampleApp;
             example-ccl-native-hook = cclExampleApp;
             example-scalus-diffhandler = scalusExampleApp;
+            examples-docs-inline = examplesDocsInlineApp;
             crossval-csl = crossvalCslApp;
             crossval-ccl = crossvalCclApp;
           };
@@ -600,6 +650,7 @@
             example-evolution-outer-loop = evolutionExampleCheck;
             example-ccl-native-hook = cclExampleCheck;
             example-scalus-diffhandler = scalusExampleCheck;
+            examples-docs-inline = examplesDocsInlineCheck;
             crossval-csl = crossvalCslCheck;
             crossval-ccl = crossvalCclCheck;
           };

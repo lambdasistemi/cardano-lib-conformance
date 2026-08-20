@@ -1,3 +1,11 @@
+# cardano-client-lib reusable outer loop
+
+This complete cardano-client-lib 0.7.2 example exposes `balanceWith`, which accepts a fresh pipeline provider, candidate builder, fee-dependent `ComputeOutputs`, and a caller-owned bound. `main` calls `runExample` and exercises the distinct `NonConvergent` exception.
+
+## Complete source
+
+<!-- BEGIN INLINE SOURCE -->
+```java
 import static com.bloxbean.cardano.client.function.helper.BalanceTxBuilders.balanceTx;
 import static com.bloxbean.cardano.client.function.helper.FeeCalculators.feeCalculator;
 
@@ -147,3 +155,11 @@ public final class OuterLoop {
                 result.passes(), result.fee());
     }
 }
+```
+<!-- END INLINE SOURCE -->
+
+## Run or check
+
+```sh
+nix run .#example-ccl-native-hook
+```

@@ -24,7 +24,9 @@ fetcher pulling documentation into a corpus, and any agent whose only tool
 is `grep`, must be able to reach a complete working loop from the page text
 alone.
 
-*Status:* intent, no tracking issue.
+*Implemented:* all six worked stacks now expose a bounded reusable function,
+inline their complete source on a per-stack page, and share a light drift check
+that compares each page with its real source file.
 
 ## Registration as a cardano-dev-skills documentation source
 

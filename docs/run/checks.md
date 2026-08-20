@@ -17,8 +17,13 @@ that cannot be present. This is the test-of-the-test:
 FALSIFY=1 nix run .#tx-tools-p1-balance
 ```
 
-All 31 apps were observed failing under this mutation and then passing again
-with the mutation absent.
+The source-evidence apps were observed failing under this mutation and then
+passing again with the mutation absent. The reusable-example documentation has
+its own falsified drift check:
+
+```sh
+FALSIFY=1 nix run .#examples-docs-inline
+```
 
 ## Check names
 
@@ -40,7 +45,7 @@ Unit, example, and cross-validation checks:
 
 `tx-tools-unit`, `example-csl-outer-loop`, `example-evolution-outer-loop`,
 `example-ccl-native-hook`, `example-scalus-diffhandler`, `crossval-csl`,
-`crossval-ccl`.
+`crossval-ccl`, `examples-docs-inline`.
 
 Cardano CLI has no executable check: the supplied evidence is a captured
 `--help` surface, so its cells live in the
