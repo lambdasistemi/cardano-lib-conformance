@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/lambdasistemi/cardano-lib-conformance/compare/v1.0.0...v1.1.0) (2026-08-20)
+
+
+### Features
+
+* reusable example functions inlined in per-stack pages ([350adcf](https://github.com/lambdasistemi/cardano-lib-conformance/commit/350adcfbbe32bf14aeebd05bca4eacf0dbf4d7b0))
+
 ## 1.0.0 (2026-08-19)
 
 
